@@ -1,0 +1,142 @@
+{{extend './layouts/layouts.html'}}
+{{block 'content'}}
+<div class="container-fluid">
+  <div class="page-title">
+    <h1>写文章</h1>
+  </div>
+  <!-- 有错误信息时展示 -->
+  <!-- <div class="alert alert-danger">
+        <strong>错误！</strong>发生XXX错误
+      </div> -->
+  <form class="row" id="post_form" enctype="multipart/form-data">
+    <div class="col-md-9">
+      <div class="form-group">
+        <label for="title">标题</label>
+        <input id="title" class="form-control input-lg" name="article_title" type="text" placeholder="文章标题">
+      </div>
+
+      <div class="form-group">
+        <label for="content">标题</label>
+        <div id="editor">
+        </div>
+        <!-- <textarea id="content" class="form-control input-lg" name="article_body" cols="30" rows="10" placeholder="内容"></textarea> -->
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <label for="slug">别名</label>
+        <input id="article_slug" class="form-control" name="article_slug" type="text" placeholder="slug">
+        <p class="help-block">https://example.com/post/<strong>slug</strong></p>
+      </div>
+      <div class="form-group">
+        <label for="feature">特色图像</label>
+        <!-- show when image chose -->
+        <img class="help-block thumbnail" style="display: none">
+        <input id="feature" class="form-control" name="article_file" type="file">
+      </div>
+      <div class="form-group">
+        <label for="category">所属分类</label>
+        <select id="category" class="form-control" name="article_cateid">
+          <option value="1">未分类</option>
+          <option value="2">潮生活</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="created">发布时间</label>
+        <input id="created" class="form-control" name="article_addtime" type="datetime-local">
+      </div>
+      <div class="form-group">
+        <label for="status">状态</label>
+        <select id="status" class="form-control" name="article_status">
+          <option value="草稿">草稿</option>
+          <option value="已发布">已发布</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </div>
+  </form>
+</div>
+{{/block}}
+
+{{block 'script'}}
+<script src="../../node_modules/jquery-validation/dist/jquery.validate.js"></script>
+<script src="../../node_modules/jquery-validation/dist/localization/messages_zh.js"></script>
+<script src="../../node_modules/wangeditor/release/wangEditor.js"></script>
+<script>
+  $('#post_form').validate({
+    rules: {
+      article_title: {
+        required: true
+      },
+      article_body: {
+        required: true
+      },
+      article_slug: {
+        required: true
+      },
+      article_file: {
+        required: true
+      },
+      article_focus: {
+        required: true
+      },
+      article_addtime: {
+        required: true
+      },
+      article_status: {
+        required: true
+      }
+    },
+    messages: {
+      article_title: {
+        required: '请输入标题'
+      },
+      article_body: {
+        required: '请输内容'
+      },
+      article_slug: {
+        required: '请输入别名'
+      },
+      article_file: {
+        required: '请选择文件'
+      },
+      article_focus: {
+        required: '请选择分类'
+      },
+      article_addtime: {
+        required: '请添加时间'
+      },
+      article_status: {
+        required: '请选择文件是否发布'
+      },
+    },
+    submitHandler: postAdd
+  })
+  var editor = new wangEditor('#editor')
+  editor.customConfig.uploadImgServer = '/api/post/upload'; //设置图片的上传路径
+  editor.customConfig.uploadFileName = 'file'; //设置接受图片时的name属性
+  editor.create()
+  function postAdd() {
+    let fm = $('#post_form');
+    let fd = new FormData(fm[0]);
+    fd.append('article_body', editor.txt.html()); //把富文本编辑器里的内容当做文本body里的内容
+    $.ajax({
+      url: '/api/post/add',
+      data: fd,
+      type: 'post',
+      dataType: 'json',
+      processData: false,
+      contentType: false,
+      success: function (msg) {
+        window.location.href = '/admin/posts'
+      },
+      error: function (err) {
+        console.log(err);
+      },
+    });
+    return false
+  }
+</script>
+{{/block}}
